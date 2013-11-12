@@ -1,0 +1,53 @@
+digraph g {
+    rx_0 [label="RX"];
+    rx_1 [label="RX"];
+    rx_2 [label="RX"];
+    rx_3 [label="RX"];
+    
+    broadcast [label="broadcast"];
+    nmt_0 [label="RX nmt"];
+    nmt_1 [label="RX nmt"];
+    dll_0 [label="RX dll"];
+    dll_1 [label="RX dll"];
+    
+    wait_0 [label="wait"];
+    wait_1 [label="wait"];
+    
+    tx_0 [label="TX"];
+    tx_1 [label="TX"];
+    
+	rx_0 -> broadcast;
+	broadcast -> rx_1;
+	rx_1 -> rx_1;
+	broadcast -> nmt_0;
+	broadcast -> dll_0;
+	rx_1 -> nmt_0;
+	rx_1 -> dll_0;
+	dll_0 -> wait_1;
+	wait_1 -> rx_2;
+	wait_1 -> tx_1;
+	wait_1 -> nmt_1;
+	nmt_0 -> dll_1;
+	
+	tx_1 -> rx_2;
+	
+	
+	rx_2 -> rx_2;
+	
+	rx_2 -> nmt_1;
+	
+	
+	
+	nmt_1 -> wait_0;
+	nmt_0 -> rx_3;
+	rx_3 -> rx_3;
+	rx_3 -> dll_1;
+	dll_1 -> wait_0;
+
+	wait_0 -> rx_0;
+	wait_0 -> tx_0;
+	
+	tx_0 -> rx_0;
+	
+
+}

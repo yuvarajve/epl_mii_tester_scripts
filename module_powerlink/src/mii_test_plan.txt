@@ -1,0 +1,51 @@
+MII testing
+RX
+ * verify correct CRC is calculated - error reported in case of fail, frame discarded
+ * link down during rx doesn't form a valid frame
+ * if all channels send commands at the same time as an rx then the rx is not dropped
+ * if a frame is received on port 0 during the reception of a frame on port 1 then port 0 is ignored
+ * if a long frame is received on port 0 during the reception of a short frame on port 1 then the interframe gap only begins after port 0 has finished receveing
+ * preamble regeneration works
+ * check that frames of 1522 bytes fit
+ * test the double frame buffer, i.e. finish with the first frame during the reception of the second.
+ * over clock the rx, under clock the rx, within spec limits
+ * rx frames with word amount of bytes, up to a word plus three amount of bytes.
+ * test the ack interface to the mii
+ * verify that the clients can take the data from the channel to never cause a block
+ * Check both ports indepentantly, i.e. all tests for port 0 and port 1
+
+Extension work
+ - limit frame to 1522 bytes
+ - catch over acked clients
+
+TX
+
+ * frames from 48-80 bytes long - tests the padding to 64 byte frame length when the tx data is less than 64 bytes (-CRC)
+ * verify correct CRC is calculated + appended to frame
+ * tx frames with word amount of bytes, up to a word plus three amount of bytes.
+ * test the ack interface to the clients
+ * over clock the tx, under clock the tx, within spec limits
+ * tune the IFG to minimise the latency
+ 	- rx -> tx
+ 	- rx(collision) -> tx
+ 	- tx -> tx 
+ 	- each has to be tested with word to word plus three byte lengths
+ * Check both ports indepentantly, i.e. all tests for port 0 and port 1
+ * one tx per tx_req, i.e. no double sending
+ 
+Extension work
+ - limit frame to 1522 bytes
+ - catch over tx requested clients
+ - 
+ 
+Hub
+ * Check the hub spec for a half duplex 100MB hub. Make sure this is it.
+ 
+ 
+General
+ * check that a packet can be recieved and immediatly after a packet can be sent. In this case check two conditions:
+   1. tx packet sent to the mii during the rx
+   2. tx packet sent to the mii in the ifg
+ 
+ 
+ 

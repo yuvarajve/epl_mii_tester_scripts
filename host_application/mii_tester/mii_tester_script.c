@@ -76,13 +76,12 @@ char get_next_char(char *buffer)
   return *ptr;
 }
 
-int ethernet_packet_sent = 0;
-unsigned char mac_addr_destn[MAC_DST_BYTES] = {255,255,255,255,255,255};
-unsigned char mac_addr_src[MAC_SRC_BYTES]   = {255,255,255,255,255,255};
-unsigned char ether_type[ETH_TYPE_BYTES]    = {0xAB, 0x88};
+const unsigned char mac_addr_destn[MAC_DST_BYTES] = {255,255,255,255,255,255};
+const unsigned char mac_addr_src[MAC_SRC_BYTES]   = {255,255,255,255,255,255};
+const unsigned char ether_type[ETH_TYPE_BYTES]    = {0xAB, 0x88};
 unsigned char packet_data[MAX_FRAME_SIZE]   = {0};
-unsigned int polynomial                     = 0xEDB88320;
-unsigned int initial_crc                    = 0x9226F562;
+const unsigned int polynomial                     = 0xEDB88320;
+const unsigned int initial_crc                    = 0x9226F562;
 
 /*
 * Incorporate a word into a Cyclic Redundancy Checksum.
@@ -196,15 +195,16 @@ int send_packet(int sockfd,unsigned char pkt_no)
 	 
     memcpy(pBuffer,(unsigned char *)&pkt_ctrl,PKT_CTRL_BYTES);
     memcpy(pBuffer+PKT_CTRL_BYTES,((unsigned char *)&packet_info) + data_index,pkt_ctrl.frame_len);
-    if(xscope_ep_request_upload(sockfd, num_byte_write,pBuffer) != XSCOPE_EP_SUCCESS)
-	  return XSCOPE_EP_FAILURE;
+    while(xscope_ep_request_upload(sockfd, num_byte_write,pBuffer) != XSCOPE_EP_SUCCESS)
+		; // wait till we get success
 
     data_size -= (num_byte_write-PKT_CTRL_BYTES);		
     data_index += (num_byte_write-PKT_CTRL_BYTES);	
-	Sleep(1000);	// data missed on practical case without this delay		
+    
+	Sleep(1000);	// added to avoid WRITE ERROR ON UPLOAD... on device or data are incorrect	
   }
   
-  printf("| %02d | %03d |  %05d  | 0x%08x |\n",(pkt_ctrl.packet_number%END_OF_PACKET_SEQUENCE)+1,(pkt_ctrl.frame_id%LAST_FRAME)+1,num_data_bytes,crc_value);
+  printf("| %02d |  %05d  | 0x%08X |\n",(pkt_ctrl.packet_number%END_OF_PACKET_SEQUENCE)+1,num_data_bytes,crc_value);
   
   return 0;
 }
@@ -221,19 +221,19 @@ void *packet_generation_thread(void *arg)
   int sockfd = *(int *)arg;
   unsigned char no_of_packets = 0;
   int loop;
-
+  
   get_initialised();
 
   srand(time(0)); //initialize the seed
 
   while(1) {
-    if(ethernet_packet_sent == 0){
+    
       // get random packet number
       no_of_packets = get_random_packets();
       printf("\nPACKET_GEN: no_of_packets : %d\n\n",no_of_packets);
-      printf("+---------------------------------+\n");
-	  printf("| ## | NoF | PktSize |  Checksum  |\n");
-      printf("+---------------------------------+\n");
+      printf("+---------------------------+\n");
+	  printf("| ## | PktSize |  Checksum  |\n");
+      printf("+---------------------------+\n");
       // always send no of packets less than '1', on last packet number add END_OF_PACKET
       for(loop=0; loop < no_of_packets-1; loop++)
       {
@@ -247,9 +247,6 @@ void *packet_generation_thread(void *arg)
        loop |= END_OF_PACKET_SEQUENCE;  
        if(send_packet(sockfd,loop) != XSCOPE_EP_SUCCESS)
 		  printf("send_packet : Failed !!\n");
-       ethernet_packet_sent = 1;
-       Sleep(100);  // 0.1Sec Sleep   // remove this
-    }
 
   }
   return 0;

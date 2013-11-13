@@ -44,51 +44,51 @@ on tile[1]: out port tx_prf_gpio_0 = XS1_PORT_1E;
 on tile[1]: out port tx_prf_gpio_1 = XS1_PORT_1H;
 
 typedef struct mii_tx_ports {
-    out buffered port:32    txd;    /**< MII TX data wire */
-    in port                 txclk;  /**< MII TX clock wire */
-    out port                txen;   /**< MII TX enable wire */
-    clock                   clk_tx; /**< MII TX Clock Block **/
+  out buffered port:32    txd;    /**< MII TX data wire */
+  in port                 txclk;  /**< MII TX clock wire */
+  out port                txen;   /**< MII TX enable wire */
+  clock                   clk_tx; /**< MII TX Clock Block **/
 }mii_tx_ports_t;
 
 typedef struct mii_rx_ports {
-    in buffered port:32    rxd;    /**< MII RX data wire */
-    in port                rxdv;   /**< MII RX data valid wire */
-    in port                rxclk;  /**< MII RX clock wire */
-    clock                  clk_rx; /**< MII RX Clock Block **/
-    in port                rxer;   /**< MII RX error wire */
+  in buffered port:32    rxd;    /**< MII RX data wire */
+  in port                rxdv;   /**< MII RX data valid wire */
+  in port                rxclk;  /**< MII RX clock wire */
+  clock                  clk_rx; /**< MII RX Clock Block **/
+  in port                rxer;   /**< MII RX error wire */
 } mii_rx_ports_t;
 
 on tile[1] : mii_tx_ports_t tx0 = {
-    PORT_ETH_TXD_0,
-    PORT_ETH_TXCLK_0,
-    PORT_ETH_TXEN_0,
-    XS1_CLKBLK_2,
+  PORT_ETH_TXD_0,
+  PORT_ETH_TXCLK_0,
+  PORT_ETH_TXEN_0,
+  XS1_CLKBLK_2,
 };
 
 on tile[1] : mii_rx_ports_t rx0 = {
-    PORT_ETH_RXD_0,
-    PORT_ETH_RXDV_0,
-    PORT_ETH_RXCLK_0,
-    XS1_CLKBLK_1,
-    PORT_ETH_ERR_0
+  PORT_ETH_RXD_0,
+  PORT_ETH_RXDV_0,
+  PORT_ETH_RXCLK_0,
+  XS1_CLKBLK_1,
+  PORT_ETH_ERR_0
 };
 on tile[1] : mii_rx_ports_t rx1 = {
-    PORT_ETH_RXD_1,
-    PORT_ETH_RXDV_1,
-    PORT_ETH_RXCLK_1,
-    XS1_CLKBLK_3,
-    PORT_ETH_ERR_1
+  PORT_ETH_RXD_1,
+  PORT_ETH_RXDV_1,
+  PORT_ETH_RXCLK_1,
+  XS1_CLKBLK_3,
+  PORT_ETH_ERR_1
 };
 on tile[1] : mii_tx_ports_t tx1 = {
-    PORT_ETH_TXD_1,
-    PORT_ETH_TXCLK_1,
-    PORT_ETH_TXEN_1,
-    XS1_CLKBLK_4
+  PORT_ETH_TXD_1,
+  PORT_ETH_TXCLK_1,
+  PORT_ETH_TXEN_1,
+  XS1_CLKBLK_4
 };
 
 void xscope_user_init(void) {
-    xscope_register(0, 0, "", 0, "");
-    xscope_config_io(XSCOPE_IO_NONE);
+  xscope_register(0, XSCOPE_CONTINUOUS, "", XSCOPE_UINT, "");
+  xscope_config_io(XSCOPE_IO_NONE);
 }
 
 // Timing tuning constants
@@ -145,184 +145,200 @@ static void tx_init(mii_tx_ports_t &p) {
  */
 void rx(in buffered port:32 rxd, in port rxdv, chanend c_rx_to_timestamp)
 {
+  timer t;
+  unsigned buffer[MAX_BUFFER_WORDS];
 
-    unsigned buffer[MAX_BUFFER_WORDS];
+  while(1) {
+    unsigned frame = 1;
+    unsigned word_count = 0;
+    unsigned byte_count = 0;
+    unsigned rx_ticks = 0;
+    unsigned checksum = 0;
 
-    while(1)
-    {
-        unsigned frame = 1;
-        unsigned word_count = 0;
-        unsigned byte_count = 0;
-        unsigned word;
+    rxdv when pinseq(1) :> int;
+    rxd when pinseq(ETH_SFD) :> int;
 
-        rxdv when pinseq(1) :> int;
-        rxd when pinseq(ETH_SFD) :> int;
-        c_rx_to_timestamp <: TIME_STAMP_STOP;
-        while(frame)
-        {
-            select
-            {
-                case rxd :> word:
-                {
-                    buffer[word_count++] = word;
-                    byte_count+=4;
-                    break;
-                }
-                case rxdv when pinseq(0) :> int:
-                {
-                    unsigned tail;
-                    unsigned taillen = endin(rxd);
-                    rxd :> tail;
+    t :> rx_ticks;
+    c_rx_to_timestamp <: rx_ticks;
 
-                    if(taillen)
-                    {
-                        tail = tail >> (32 - taillen);
-                        buffer[word_count++] = tail;
-                        byte_count += (taillen >> 3);
-                    }
+    while(frame) {
+      select {
 
-                    /**< report frame to app */
-                    c_rx_to_timestamp <: byte_count;
+        case rxd :> unsigned word: {
+          buffer[word_count++] = word;
+          byte_count+=4;
+          break;
+        }
 
-                    frame = 0;
-                    break;
-               } /**< rxdv low */
-            }
-        } /**< frame */
-    }
+        case rxdv when pinseq(0) :> int: {
+          unsigned tail;
+          unsigned taillen = endin(rxd);
+          rxd :> tail;
+
+          if(taillen) {
+            tail = tail >> (32 - taillen);
+            buffer[word_count++] = tail;
+            byte_count += (taillen >> 3);
+
+            checksum = ((tail << (32 - taillen)) | (buffer[word_count-2] >> taillen));
+          }
+          else {
+            checksum = buffer[word_count-1];
+          }
+
+          /**< report bytecount to timestamp */
+          c_rx_to_timestamp <: byte_count;  // rx byte count including checksum
+          c_rx_to_timestamp <: checksum;
+
+          frame = 0;
+          break;
+        } /**< rxdv low */
+      }
+    } /**< frame */
+  }
 }
 /*
  *
  */
 void tx(out buffered port:32 txd, chanend c_data_handler_to_tx,chanend c_tx_to_timestamp)
 {
-    unsigned tick;
-    uintptr_t dptr;
-    timer t;
+  unsigned tx_ticks;
+  uintptr_t dptr;
+  timer t;
 
-    while(1)
-    {
-        host_to_app_t tx_cmd;
-        c_data_handler_to_tx :> tx_cmd;
+  while(1) {
+    host_to_app_t tx_cmd;
+    c_data_handler_to_tx :> tx_cmd;
 
-        switch(tx_cmd)
-        {
-            case HOST_CMD_TX:
-            {
-                unsigned time;
-                unsigned idx;
-                unsigned size_in_bytes;
-                unsigned data;
+    switch(tx_cmd) {
 
-                c_data_handler_to_tx :> time;
-                c_data_handler_to_tx :> dptr;
-                c_data_handler_to_tx :> size_in_bytes;
+      case HOST_CMD_TX: {
+        unsigned wait_time;
+        unsigned idx;
+        unsigned size_in_bytes;
+        unsigned data;
 
-                printf("TX Size in bytes: %d\n",(size_in_bytes-CRC_BYTES));
-                t :> tick;
-                /**< when a tx cmd come from tx_to_app then send it out */
-                t when timerafter(tick+time) :> tick;
-                c_tx_to_timestamp <: TIME_STAMP_START;
-                txd <: 0x55555555;              /**< send ethernet preamble */
-                txd <: 0xD5555555;              /**< send Start of frame delimiter */
+        c_data_handler_to_tx :> wait_time;
+        c_data_handler_to_tx :> dptr;
+        c_data_handler_to_tx :> size_in_bytes;
 
-                /**< send data from pointer, including checksum */
-                for(idx=0; idx<(size_in_bytes>>2);idx++){
-                	asm volatile("ldw %0, %1[%2]":"=r"(data):"r"(dptr), "r"(idx):"memory");
-                	txd <: data;
-                }
+        printf(" %05d |",(size_in_bytes-CRC_BYTES));
+        t :> tx_ticks;
+        /**< when a tx cmd come from tx_to_app then send it out */
+        t when timerafter(tx_ticks+wait_time) :> tx_ticks;
+        c_tx_to_timestamp <: tx_ticks;
 
-                /**< send the remaining no of bytes, if not in 4byte offset */
-                if(size_in_bytes&3)
-                {
-                    unsigned tailllen = ((size_in_bytes&3)*8);
-                    partout(txd, tailllen, data);
-                }
+        txd <: 0x55555555;              /**< send ethernet preamble */
+        txd <: 0xD5555555;              /**< send Start of frame delimiter */
 
-                c_data_handler_to_tx <: HOST_CMD_TX_ACK;
-                break;
-            }
-
-            default:__builtin_unreachable();break;
+        /**< send data from pointer, including checksum */
+        for(idx=0; idx<(size_in_bytes>>2);idx++) {
+          asm volatile("ldw %0, %1[%2]":"=r"(data):"r"(dptr), "r"(idx):"memory");
+          txd <: data;
         }
+
+        asm volatile("ldw %0, %1[%2]":"=r"(data):"r"(dptr), "r"(idx):"memory");
+        /**< send the remaining no of bytes, if not in 4byte offset */
+        if(size_in_bytes&3) {
+          unsigned tailllen = ((size_in_bytes&3)*8);
+          partout(txd, tailllen, data);
+        }
+
+        c_data_handler_to_tx <: HOST_CMD_TX_ACK;
+        break;
+      }
+
+      default:__builtin_unreachable();break;
     }
+  }
 }
 void time_stamp(chanend c_tx_to_timestamp,chanend c_rx_to_timestamp)
 {
-	unsigned time_stamp_flag = 0;
-	unsigned start_ticks,stop_ticks;
-	timer t;
+  unsigned time_stamp_flag = 0;
+  unsigned start_ticks,stop_ticks;
 
+  while(1) {
+    select {
 
-	while(1)
-	{
-		select {
-			case !time_stamp_flag => c_tx_to_timestamp :> time_stamp_t ts_cmd:
-				time_stamp_flag = 1;
-				t :> start_ticks;
-				break;
+      case !time_stamp_flag => c_tx_to_timestamp :> start_ticks:
+        time_stamp_flag = 1;
+        break;
 
-			case time_stamp_flag => c_rx_to_timestamp :> time_stamp_t ts_cmd:
-				t :> stop_ticks;
-				if(stop_ticks > start_ticks)
-					printf("TimeStamp : 0x%x\n",(stop_ticks-start_ticks));
-				else {
-                   printf("OVF:TimeStamp : 0x%x\n",(0xFFFFFFFF-start_ticks)+stop_ticks);
-				}
-				time_stamp_flag = 0;
-				break;
-		}
+      case time_stamp_flag => c_rx_to_timestamp :> stop_ticks: {
+        unsigned byte_count = 0;
+        unsigned checksum = 0;
 
+        c_rx_to_timestamp :> byte_count;
+        c_rx_to_timestamp :> checksum;
+
+        printf(" %05d |",(byte_count-CRC_BYTES));
+
+        const int preamble_bits = 64;
+        if(stop_ticks > start_ticks)
+          printf(" %04d | 0x%08X |\n",(stop_ticks-start_ticks)-preamble_bits,checksum);
+        else /**< this condition occurs when timer overflow occures */
+          printf(" %04d |  0x%08X |\n",((0xFFFFFFFF-start_ticks)+stop_ticks)-preamble_bits,checksum);
+
+        time_stamp_flag = 0;
+        break;
+      }
 	}
-
+  }
 }
 void xscope_listener(chanend c_host_data,chanend c_listener_to_data_handler)
 {
-    uintptr_t xbuff_ptr;
-    unsigned int xbuff[256/4];
+  uintptr_t xbuff_ptr;
+  unsigned char xbuff[256];
 
-    xscope_connect_data_from_host(c_host_data);
-    asm("mov %0, %1": "=r"(xbuff_ptr):"r"(xbuff));
+  xscope_connect_data_from_host(c_host_data);
+  asm("mov %0, %1": "=r"(xbuff_ptr):"r"(xbuff));
 
-    while(1) {
-        int num_byte_read = 0;
-        select {
-            case xscope_data_from_host(c_host_data, (unsigned char *)xbuff, num_byte_read):
-                if(num_byte_read != 0)
-                    c_listener_to_data_handler <: xbuff_ptr;
-                break;
+  while(1) {
+    int num_byte_read = 0;
+    select {
+      case xscope_data_from_host(c_host_data, xbuff, num_byte_read): {
+        if(num_byte_read != 0) {
+          master {
+            c_listener_to_data_handler <: xbuff_ptr;
+          }
         }
+        break;
+      }
     }
+  }
 }
 /*
  *
  */
-int main(){
-    chan c_listener_to_data_handler;
-    chan c_data_handler_to_tx;
-    chan c_tx_to_timestamp;
-    chan c_rx_to_timestamp;
-    chan c_host_data;
+int main(void) {
 
-    par {
-        //xscope_host_data(c_host_data);
-    	on tile [1]: time_stamp(c_tx_to_timestamp,c_rx_to_timestamp);
-    	on tile [1]: data_handler(c_listener_to_data_handler,c_data_handler_to_tx);
-    	on tile [1]: xscope_listener(c_host_data,c_listener_to_data_handler);
+  chan c_listener_to_data_handler;
+  chan c_data_handler_to_tx;
+  chan c_tx_to_timestamp;
+  chan c_rx_to_timestamp;
+  chan c_host_data;
 
-    	on tile [1]: {
-    		rx_init(rx1);
-    		rx(rx1.rxd, rx1.rxdv, c_rx_to_timestamp);  /**< Receive Frames on circle slot */
-    	}
-    	on tile [1]: {
-    		smi_init(smi0);
-    		tx_init(tx0);
-    		tx(tx0.txd,c_data_handler_to_tx,c_tx_to_timestamp);            /**< Transmit Frames on square slot */
-    	}
+  par {
+    //xscope_host_data(c_host_data);
+    on tile [1]: time_stamp(c_tx_to_timestamp,c_rx_to_timestamp);
+    on tile [1]: data_handler(c_listener_to_data_handler,c_data_handler_to_tx);
+    on tile [1]: xscope_listener(c_host_data,c_listener_to_data_handler);
 
+    on tile [1]: {
+      set_core_fast_mode_on();
+      rx_init(rx1);
+      rx(rx1.rxd, rx1.rxdv, c_rx_to_timestamp);  /**< Receive Frames on circle slot */
+    }
+    on tile [1]: {
+      set_core_fast_mode_on();
+      smi_init(smi0);
+      tx_init(tx0);
+      tx(tx0.txd,c_data_handler_to_tx,c_tx_to_timestamp);            /**< Transmit Frames on square slot */
     }
 
-    return 0;
+  }
+
+  return 0;
 }
 
 

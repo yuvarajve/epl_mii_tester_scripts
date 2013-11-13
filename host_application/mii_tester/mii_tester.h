@@ -17,7 +17,7 @@
 #define MIN_IFG_BYTES          8
 #define MAX_IFG_BYTES          12     // Caution: Don't exceed this
 #define LAST_FRAME             (1<<7)
-#define MAX_BYTES_CAN_SEND     255
+#define MAX_BYTES_CAN_SEND     256
 #define END_OF_PACKET_SEQUENCE (3<<6)
 
 /* The entire Ethernet frame generated and sent from host are fragmented 
@@ -25,10 +25,10 @@
 * +------------------------------------------------------------------+
 * |  packet_number  |  frame_id  |  frame_len  |         data        |
 * +------------------------------------------------------------------+
-* Frame data     : 1600
-* CRC32          :    4
-* packet size    :    4
-* packet delay   :    4
+* Frame data     : 1600 --+
+* CRC32          :    4   | --> data
+* packet size    :    4   |
+* packet delay   :    4 --+
 * packet number  :    1
 * frame id       :    1
 * frame length   :    2
@@ -38,7 +38,7 @@
 typedef struct packet_info{  
   unsigned int packet_delay;
   unsigned int packet_size;
-  unsigned char   payload[MAX_FRAME_SIZE];         // payload data
+  unsigned char   payload[MAX_FRAME_SIZE+CRC_BYTES];         // payload data
 }packet_info_t;
 
 // packet control

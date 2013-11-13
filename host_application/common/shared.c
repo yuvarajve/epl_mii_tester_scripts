@@ -112,9 +112,9 @@ int xscope_ep_request_upload(int sockfd, unsigned int length, const unsigned cha
   int requestBufIndex = 0;
   int n = 0;
 
-  if (xscope_ep_upload_pending == 1)
+  if(xscope_ep_upload_pending == 1)
     return XSCOPE_EP_FAILURE;
-
+	
   requestBuffer[requestBufIndex] = request;
   requestBufIndex += 1;
   *(unsigned int *)&requestBuffer[requestBufIndex] = length;
@@ -126,7 +126,7 @@ int xscope_ep_request_upload(int sockfd, unsigned int length, const unsigned cha
   if (n != requestBufIndex)
     print_and_exit("ERROR: Command send failed\n");
 
-  xscope_ep_upload_pending = 1;
+  xscope_ep_upload_pending++;
   free(requestBuffer);
 
   return XSCOPE_EP_SUCCESS;
@@ -263,7 +263,8 @@ void handle_socket(int sockfd)
       } else if (recv_buffer[i] == XSCOPE_SOCKET_MSG_EVENT_TARGET_DATA) {
         // The target acknowledges that it has received the message sent
         if ((i + TARGET_DATA_EVENT_BYTES) <= n) {
-          xscope_ep_upload_pending = 0;
+		  assert(xscope_ep_upload_pending > 0);
+          xscope_ep_upload_pending--;
           increment = TARGET_DATA_EVENT_BYTES;
         }
 

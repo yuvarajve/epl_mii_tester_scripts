@@ -14,27 +14,23 @@
 #define MAX_BUFFER_WORDS  ((MAX_FRAME_SIZE+3)>>2)
 
 typedef enum {
-	EVENT_WAIT,
-	EVENT_SOF,
-	EVENT_FRAME_INCOMPLETE,
-	EVENT_EOF,
-	EVENT_EOP
+  EVENT_WAIT,
+  EVENT_SOF,
+  EVENT_FRAME_INCOMPLETE,
+  EVENT_EOF,
+  EVENT_EOP
 }event_t;
 
 typedef enum {
-    RX_SOF,
-    RX_COMPLETE
+  RX_SOF,
+  RX_COMPLETE
 }rx_to_app_t;
 
 typedef enum {
-    HOST_CMD_TX,
-    HOST_CMD_TX_ACK,
+  HOST_CMD_TX,
+  HOST_CMD_TX_ACK,
 } host_to_app_t;
 
-typedef enum {
-	TIME_STAMP_START,
-	TIME_STAMP_STOP
-}time_stamp_t;
 #ifdef __XC__
 #define CHANEND_PARAM(param, name) param name
 #else

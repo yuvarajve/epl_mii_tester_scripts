@@ -10,7 +10,7 @@
 typedef struct packet_info{
   unsigned int packet_delay;
   unsigned int packet_size;
-  unsigned char   payload[MAX_FRAME_SIZE+CRC_BYTES];         // payload data
+  unsigned char   payload[MAX_FRAME_SIZE];         // payload data
 }packet_info_t;
 
 // packet control
@@ -51,7 +51,7 @@ void data_handler(CHANEND_PARAM(chanend, c_listener_to_data_handler),CHANEND_PAR
     }
 
     /**< check for laast frame andor */
-    if( (packet_control->frame_id & LAST_FRAME) || (eth_buffer[packet_number].packet_size == (data_index-CRC_BYTES)) ){
+    if( (packet_control->frame_id & LAST_FRAME) && (eth_buffer[packet_number].packet_size == (data_index-CRC_BYTES)) ){
       event_flag = EVENT_EOF;
       data_index = 0;
     }
@@ -79,7 +79,7 @@ void data_handler(CHANEND_PARAM(chanend, c_listener_to_data_handler),CHANEND_PAR
         put_buffer_int(c_data_handler_to_tx,eth_buffer[idx].packet_size+CRC_BYTES);
         get_buffer_int(c_data_handler_to_tx);
         wait(1200);
-		//print_frame((unsigned char *)&(eth_buffer[idx].payload[0]),eth_buffer[idx].packet_size);
+        //print_frame((unsigned char *)&(eth_buffer[idx].payload[0]),eth_buffer[idx].packet_size);
         idx++;
       }
 

@@ -12,8 +12,10 @@
 #define MIN_NO_OF_PACKET       1
 #define MAX_NO_OF_PACKET       20
 #define MIN_FRAME_SIZE         64      
-#define MAX_FRAME_SIZE         1600   
+#define MAX_FRAME_SIZE         1522   
 #define CRC_BYTES			   sizeof(unsigned int)
+#define PKT_DELAY_BYTES        sizeof(unsigned int)
+#define PKT_SIZE_BYTES         sizeof(unsigned int)
 #define MIN_IFG_BYTES          8
 #define MAX_IFG_BYTES          12     // Caution: Don't exceed this
 #define LAST_FRAME             (1<<7)
@@ -25,7 +27,7 @@
 * +------------------------------------------------------------------+
 * |  packet_number  |  frame_id  |  frame_len  |         data        |
 * +------------------------------------------------------------------+
-* Frame data     : 1600 --+
+* Frame data     : 1518 --+
 * CRC32          :    4   | --> data
 * packet size    :    4   |
 * packet delay   :    4 --+
@@ -38,7 +40,7 @@
 typedef struct packet_info{  
   unsigned int packet_delay;
   unsigned int packet_size;
-  unsigned char   payload[MAX_FRAME_SIZE+CRC_BYTES];         // payload data
+  unsigned char   payload[MAX_FRAME_SIZE];         // payload data
 }packet_info_t;
 
 // packet control
@@ -51,6 +53,6 @@ typedef struct packet_control {
 		
 #define PKT_CTRL_BYTES       sizeof(packet_control_t)
 #define ETH_FRAME_BYTES      sizeof(ethernet_frame_t)
-#define DEFAULT_LEN          (sizeof(packet_info_t) - MAX_FRAME_SIZE +  CRC_BYTES)  
+#define DEFAULT_LEN          (PKT_DELAY_BYTES + PKT_SIZE_BYTES + CRC_BYTES)  
 
 #endif // __MII_TESTER_H__

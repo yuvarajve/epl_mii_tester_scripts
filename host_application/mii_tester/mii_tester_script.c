@@ -57,25 +57,6 @@ void hook_exiting()
   fclose(g_pcap_fptr);
 }
 
-void print_console_usage()
-{
-  printf("Supported commands:\n");
-  printf("  h|?     : print this help message\n");
-  printf("  e <o|n> : tell app to expect (o)versubscribed or (n)ormal traffic\n");
-  printf("  x <e|d> : tell app to (e)nable or (d)isable xscope packet dumping\n");
-  printf("  q       : quit\n");
-}
-
-#define LINE_LENGTH 1024
-
-char get_next_char(char *buffer)
-{
-  char *ptr = buffer;
-  while (*ptr && isspace(*ptr))
-    ptr++;
-  return *ptr;
-}
-
 const unsigned char mac_addr_destn[MAC_DST_BYTES] = {255,255,255,255,255,255};
 const unsigned char mac_addr_src[MAC_SRC_BYTES]   = {255,255,255,255,255,255};
 const unsigned char ether_type[ETH_TYPE_BYTES]    = {0xAB, 0x88};
@@ -168,13 +149,13 @@ int send_packet(int sockfd,unsigned char pkt_no)
 
   pkt_ctrl.packet_number  = pkt_no;
   packet_info.packet_delay   = delay;
-  packet_info.packet_size    = num_data_bytes;
+  packet_info.packet_size    = num_data_bytes-CRC_BYTES;
 
-  for(idx = 0; idx < num_data_bytes; idx++){
+  for(idx = 0; idx < packet_info.packet_size; idx++){
     crc_value = crc8(crc_value, packet_info.payload[idx]);
   }		
 
-  memcpy(&(packet_info.payload[num_data_bytes]),&crc_value,sizeof(crc_value));
+  memcpy(&(packet_info.payload[packet_info.packet_size]),&crc_value,sizeof(crc_value));
 
   idx = 0;
   data_size = packet_info.packet_size + DEFAULT_LEN;
@@ -187,7 +168,7 @@ int send_packet(int sockfd,unsigned char pkt_no)
 	  pkt_ctrl.frame_len = num_byte_write-PKT_CTRL_BYTES;
 	  pkt_ctrl.frame_id = idx++;
     }
-    else {
+    else {		
 	  num_byte_write = data_size+PKT_CTRL_BYTES;
 	  pkt_ctrl.frame_id = idx | LAST_FRAME;
 	  pkt_ctrl.frame_len = data_size;
@@ -201,10 +182,10 @@ int send_packet(int sockfd,unsigned char pkt_no)
     data_size -= (num_byte_write-PKT_CTRL_BYTES);		
     data_index += (num_byte_write-PKT_CTRL_BYTES);	
     
-	Sleep(1000);	// added to avoid WRITE ERROR ON UPLOAD... on device or data are incorrect	
+	Sleep(500);	// added to avoid WRITE ERROR ON UPLOAD... on device or data are incorrect	
   }
   
-  printf("| %02d |  %05d  | 0x%08X |\n",(pkt_ctrl.packet_number%END_OF_PACKET_SEQUENCE)+1,num_data_bytes,crc_value);
+  printf("| %02d |  %05d  | 0x%08X |\n",(pkt_ctrl.packet_number%END_OF_PACKET_SEQUENCE)+1,packet_info.packet_size,crc_value);
   
   return 0;
 }
@@ -233,12 +214,12 @@ void *packet_generation_thread(void *arg)
       printf("\nPACKET_GEN: no_of_packets : %d\n\n",no_of_packets);
       printf("+---------------------------+\n");
 	  printf("| ## | PktSize |  Checksum  |\n");
-      printf("+---------------------------+\n");
+      printf("+---------------------------+\n");   
       // always send no of packets less than '1', on last packet number add END_OF_PACKET
       for(loop=0; loop < no_of_packets-1; loop++)
       {
 	    if(send_packet(sockfd,loop) != XSCOPE_EP_SUCCESS)
-		  printf("send_packet : Failed !!\n");
+          printf("send_packet : Failed !!\n");
       }
 	  
 	   /* send end of packet, so that mii tester xcore code starts
@@ -246,7 +227,7 @@ void *packet_generation_thread(void *arg)
 	   */
        loop |= END_OF_PACKET_SEQUENCE;  
        if(send_packet(sockfd,loop) != XSCOPE_EP_SUCCESS)
-		  printf("send_packet : Failed !!\n");
+         printf("send_packet : Failed !!\n");
 
   }
   return 0;
@@ -265,9 +246,9 @@ void usage(char *argv[])
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
-  HANDLE thread_1,thread_2;
+  HANDLE pg_thread;
 #else
-  pthread_t tid_1,tid_2;
+  pthread_t pg_tid;
 #endif
 
   char *server_ip = DEFAULT_SERVER_IP;
@@ -322,25 +303,14 @@ int main(int argc, char *argv[])
     emit_pcapng_interface_description_block(g_pcap_fptr);
   }
   fflush(g_pcap_fptr);
-#if 0
-// Now start the console
-#ifdef _WIN32
-  //thread_1 = CreateThread(NULL, 0, console_thread, &sockfd, 0, NULL);
-  if (thread_1 == NULL)
-    print_and_exit("ERROR: Failed to create console thread\n");
-#else
-  //err = pthread_create(&tid_1, NULL, &console_thread, &sockfd);
-  if (err != 0)
-    print_and_exit("ERROR: Failed to create console thread\n");
-#endif
-#endif
+
 // Now start the packet generation
 #ifdef _WIN32
-  thread_2 = CreateThread(NULL, 0, packet_generation_thread, &sockfd, 0, NULL);
-  if (thread_2 == NULL)
+  pg_thread = CreateThread(NULL, 0, packet_generation_thread, &sockfd, 0, NULL);
+  if (pg_thread == NULL)
     print_and_exit("ERROR: Failed to create packet generation thread\n");
 #else
-  err = pthread_create(&tid_2, NULL, &packet_generation_thread, &sockfd);
+  err = pthread_create(&pg_tid, NULL, &packet_generation_thread, &sockfd);
   if (err != 0)
     print_and_exit("ERROR: Failed to create packet generation thread\n");
 #endif

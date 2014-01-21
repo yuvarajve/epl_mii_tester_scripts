@@ -1,0 +1,26 @@
+==============================================================================
+       Communication Profile Area (0x1000 - 0x1FFF) defined by EPSG 301
+==============================================================================
+ This package is a template for all objects in the Communication
+ Profile Area (0x1000 - 0x1FFF) defined by the POWERLINK
+ Specification EPSG 301 and amendmends.
+ Default values are set according to the specifications.
+ 
+ Below listed standards are applied in their given version:
+  * EPSG 301     DS   V1.1.0    Communication Profile Specification
+  * EPSG 302-A   WDP  V1.0.5    High Availability
+  * EPSG 302-B   DS   V1.0.0    Multiple-ASnd
+  * EPSG 302-C   WDP  V0.0.3    PollResponse Chaining
+==============================================================================
+ History:
+
+ V0.1   2010-11-11 seissw    Initial version 
+==============================================================================
+ 
+#include "1000-11FF_NMT-ERR-CFM-DIA.xml"
+#include "1200-13FF_SDO.xml"
+#include "1400-17FF_PDO_Rx.xml"
+#include "1800-1BFF_PDO_Tx.xml"
+#include "1C00-1CFF_DLL_PDO.xml"
+#include "1D00-1EFF_RT1-NWL.xml"
+#include "1F00-1FFF_CFM_PDL_INP_NMT.xml"

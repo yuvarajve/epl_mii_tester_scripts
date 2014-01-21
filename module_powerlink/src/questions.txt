@@ -1,0 +1,14 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+Is the dst of SDO via ASnd always C_ADR_MN_DEF_NODE_ID?

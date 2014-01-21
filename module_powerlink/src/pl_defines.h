@@ -30,16 +30,7 @@ typedef enum {
             // the node shall change over to NMT_CS_PRE_OPERATIONAL_1
   NMT_CT12, //
 
-} t_nmt_transition;
-
-//this might be redundant - if only comms are transition changes
-typedef enum {
-  NMT_TRANSITION
-} t_nmt_cmd;
-
-typedef enum {
-  REQUEST_STATE
-} t_dll_request_to_nmt;
+} nmt_transition_t;
 
 typedef enum {
   //requestable ASnd ServiceIDs
@@ -83,7 +74,7 @@ typedef enum {
   NMTPublishEmergencyNew = 0xa0,
   NMTPublishTime = 0xb0,
   NMTInvalidService = 0xc0
-} t_nmt_command;
+} nmt_command_id_t;
 
 #define EXTENDED_CMD_DIFF (NMTStartNodeEx - NMTStartNode)
 
@@ -104,7 +95,7 @@ typedef enum {
         NMT_CS_OPERATIONAL =0xfd,
         NMT_CS_STOPPED = 0x4d,
       NMT_CS_BASIC_ETHERNET = 0x1e
-} t_nmt_state;
+} nmt_state_t;
 
 //POWERLINK Message Type IDs
 typedef enum {
@@ -115,7 +106,7 @@ typedef enum {
   Asynchronous_Send = 0x06
   //Active_Managing_Node_Indication  =0x07, //used by EPSG DS302-A [1]
   //Asynchronous_Invite  =0x0d, // used by EPSG DS302-B [2]
-} Message_Type_ID;
+} message_type_id_t;
 
 //ASnd ServiceIDs
 typedef enum {
@@ -128,7 +119,7 @@ typedef enum {
   //reserved                0x06 .. 0x9F
   //Manufacturer_specific   0xA0 .. 0xFE
   //reserved                0xFF
-} ASnd_ServiceIDs;
+} asnd_serviceids_t;
 
 //SoA RequestedServiceIDs
 typedef enum {
@@ -139,7 +130,7 @@ typedef enum {
   //reserved                0x04 ... 0x9F
   MANUF_SVC_IDS =  0xA0, // ... 0xFE
   UNSPECIFIED_INVITE = 0xFF,
-} SoA_RequestedServiceIDs;
+} SoA_RequestedServiceIDs_t;
 
 
 typedef enum {
@@ -149,7 +140,7 @@ typedef enum {
   DLL_CE_SOA,
   DLL_CE_ASND,
   DLL_CE_SOC_TIMEOUT
-} dll_events;
+} dll_events_t;
 
 //6.3.2.4.2 Commands
 typedef enum {
@@ -166,14 +157,14 @@ typedef enum {
   Read_Multiple_Parameter_by_Index=0x32,
   Maximum_Segment_Size=0x70,
   //Manufacturer specific 0x80h - 0xFF
-} Commands;
+} Commands_t;
 
 typedef enum {
   Expedited_Transfer = 0x0,
   Initiate_Segm_Transfer = 0x1,
   Segment = 0x2,
   Segm_Transfer_Complete = 0x3,
-} Segmentation;
+} Segmentation_t;
 
 typedef enum {
   IPv4 = 0x0008,

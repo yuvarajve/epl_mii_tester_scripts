@@ -14,7 +14,7 @@
 #include <print.h>
 #include "pl_defines.h"
 void print(intptr_t pointer);
-void print_nmt_state(t_nmt_state state);
+void print_nmt_state(nmt_state_t state);
 #else
 void print(intptr_t pointer){};
 #endif

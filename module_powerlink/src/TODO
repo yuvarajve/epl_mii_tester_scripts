@@ -1,0 +1,15 @@
+Can Open Object dictionary generator
+- seperate xml parsing and generation into seperate modules
+- collect together examples of xdd files for all common can open profiles
+- implement a full test suite
+  - test the co_od api
+  - verify all data is in the od
+- benchmark the preformance of the api, i.e. cycles to read and write
+- 
+
+
+SDO testing
+-sequence layer testing
+-cmd layer testing
+
+-error handling

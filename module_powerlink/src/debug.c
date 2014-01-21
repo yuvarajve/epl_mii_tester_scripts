@@ -17,7 +17,7 @@ static void print_soc(SoC_t * f){
 }
 static void print_preq(PReq_t * f){
   printf("RD:%d EA:%d MS:%d PDOVersion:%02x Size %04d\n",
-      f->NMTStatus, f->RD, f->EA, f->MS, f->PDOVersion, f->size);
+       f->RD, f->EA, f->MS, f->PDOVersion, f->size);
   /*
   for(unsigned i=0;i<f->size;i++){
     printf("%02x ", f->payload[i]);
@@ -44,6 +44,42 @@ static void print_soa(SoA_t * f){
 
 }
 
+static void print_nmt_command(nmt_command_t * frm){
+  switch(frm->NMTCommandID){
+  case IdentResponse: printf("IdentResponse\n");break;
+  case StatusResponse: printf("StatusResponse\n");break;
+  case NMTStartNode: printf("NMTStartNode\n");break;
+  case NMTStopNode: printf("NMTStopNode\n");break;
+  case NMTEnterPreOperational2: printf("NMTEnterPreOperational2\n");break;
+  case NMTEnableReadyToOperate: printf("NMTEnableReadyToOperate\n");break;
+  case NMTResetNode: printf("NMTResetNode\n");break;
+  case NMTResetCommunication: printf("NMTResetCommunication\n");break;
+  case NMTResetConfiguration: printf("NMTResetConfiguration\n");break;
+  case NMTSwReset: printf("NMTSwReset\n");break;
+  case NMTStartNodeEx: printf("NMTStartNodeEx\n");break;
+  case NMTStopNodeEx: printf("NMTStopNodeEx\n");break;
+  case NMTEnterPreOperational2Ex: printf("NMTEnterPreOperational2Ex\n");break;
+  case NMTEnableReadyToOperateEx: printf("NMTEnableReadyToOperateEx\n");break;
+  case NMTResetNodeEx: printf("NMTResetNodeEx\n");break;
+  case NMTResetCommunicationEx: printf("NMTResetCommunicationEx\n");break;
+  case NMTResetConfigurationEx: printf("NMTResetConfigurationEx\n");break;
+  case NMTSwResetEx: printf("NMTSwResetEx\n");break;
+  case NMTNetHostNameSet: printf("NMTNetHostNameSet\n");break;
+  case NMTFlushArpEntry: printf("NMTFlushArpEntry\n");break;
+  case NMTPublishConfiguredNodes: printf("NMTPublishConfiguredNodes\n");break;
+  case NMTPublishActiveNodes: printf("NMTPublishActiveNodes\n");break;
+  case NMTPublishPreOperational1: printf("NMTPublishPreOperational1\n");break;
+  case NMTPublishPreOperational2: printf("NMTPublishPreOperational2\n");break;
+  case NMTPublishReadyToOperate: printf("NMTPublishReadyToOperate\n");break;
+  case NMTPublishOperational: printf("NMTPublishOperational\n");break;
+  case NMTPublishStopped: printf("NMTPublishStopped\n");break;
+  case NMTPublishNodeStates: printf("NMTPublishNodeStates\n");break;
+  case NMTPublishEmergencyNew: printf("NMTPublishEmergencyNew\n");break;
+  case NMTPublishTime: printf("NMTPublishTime\n");break;
+  case NMTInvalidService: printf("NMTInvalidService\n");break;
+  }
+}
+
 static void print_asnd(ASnd_t * frm){
 switch(frm->ServiceID){
   case IDENT_RESPONSE:{
@@ -60,6 +96,9 @@ switch(frm->ServiceID){
   }
   case NMT_COMMAND:{
     printf("NMT_COMMAND \n");
+
+    nmt_command_t * n = &(frm->nmt_cmd);
+    print_nmt_command(n);
     break;
   }
   case SDO:{
@@ -180,7 +219,7 @@ static void print_Command_Layer_Protocol(Command_Layer_Protocol_t * f){
   printf("Command_ID: %d Segment_Size: %d ", f->Command_ID, f->Segment_Size);
   cmd_without_initiate * c;
   if(f->Segmentation == 1){
-    printf("DataSize: %d ", f->cmd_init.DataSize);
+    printf("DataSize: %u ", f->cmd_init.DataSize);
    // c = &(f->cmd_init.cmd);
   } else {
     c = &(f->cmd_no_init);
@@ -365,7 +404,7 @@ static void print_ipv4(IPv4_t * f) {
   }
   }
 }
-//#define VERBOSE_ETHERNET_II
+#define VERBOSE_ETHERNET_II
 
 static void print_frame(frame * f){
   unsigned ethertype = htons(f->ethertype);
@@ -401,14 +440,13 @@ static void print_frame(frame * f){
     printf("\n");
   }
 }
-int i=1;
+
 void print(intptr_t pointer){
   frame * frm = (frame *)pointer;
-  printf("%d\t", i++);
   print_frame(frm);
 }
 #include <print.h>
-void print_nmt_state(t_nmt_state state){
+void print_nmt_state(nmt_state_t state){
   switch(state){
     case NMT_GS_OFF: printstrln("NMT_GS_OFF");break;
     case NMT_GS_INITIALISING: printstrln("NMT_GS_INITIALISING");break;

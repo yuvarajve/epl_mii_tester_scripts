@@ -108,7 +108,7 @@
 //Feature Flags
 
 #define FEATURE_Isochronous               TRUE
-#define FEATURE_SDO_by_UDPIP              TRUE
+#define FEATURE_SDO_by_UDPIP              FALSE
 #define FEATURE_SDO_by_ASnd               TRUE
 #define FEATURE_SDO_by_PDO                FALSE
 #define FEATURE_NMT_Info_Services         FALSE

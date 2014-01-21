@@ -1,0 +1,120 @@
+## --------- XMOS Ethernet PowerLink Manual Test Mode ---------- ##
+import Tkinter as tk
+from Tkinter import *
+from Tkinter import Label
+import tkMessageBox
+from Tkinter import Checkbutton
+import os
+from mii_frame_gen import *
+
+#------------------------------------- Label Frame --------------------------------------------------------------------------------------
+def ManualTest():
+    Manual = tk.Tk()
+    Manual.title('Manual Testing Mode')
+    Manual.geometry("400x215")
+    Manual_labelframe = tk.LabelFrame(Manual, text="Choose the Test Pattern")
+    Manual_labelframe.pack(fill="both", expand="yes")
+
+    radiobutn = IntVar(Manual,value=0)
+    UserVal = IntVar(Manual,value=0)
+    TimeVal = IntVar(value=0)
+    ByteCnt = IntVar(value=64)
+
+    #------------------------------------- StartButton CallBack -----------------------------------------------------------------------------
+    def SendFrameButtonCallBack(time):
+        print 'pattern' + str(radiobutn.get())
+
+        if(int(radiobutn.get()) == 0):
+            tkMessageBox.showerror("Manual Testing Mode", "ERROR: No Pattern Chosen to Start")
+            Manual.destroy()
+            
+        if( (int(entry2.get()) < 64) or (int(entry2.get()) > 1522) ):
+            tkMessageBox.showerror("Manual Testing Mode", "ERROR: Number of Bytes to Send - Out of Range \n Range: 64 to 1522 bytes")
+            Manual.destroy()
+        
+        if((time == 1) and (int(entry1.get()) > 5000)):
+            tkMessageBox.showerror("Manual Testing Mode", "ERROR: Frame Send Time - Out of Range \n Range: 0 to 5000 mSec")
+            Manual.destroy()
+
+        if( (int(radiobutn.get()) == 8) and ((int(entry0.get()) <= 0) or (int(entry0.get()) > 255)) ):
+            tkMessageBox.showerror("Manual Testing Mode", "ERROR: User Input - Invalid \n Range: > 0 to <= 255 ")
+            print 'UserEntry ' + str(entry0.get())
+            Manual.destroy()
+        else:
+            print 'UserEntry ' + str(entry0.get())
+
+        checksum = 0
+        patternType = int(radiobutn.get())
+        userdata = int(entry0.get())
+        timeDelay = int(entry1.get())
+        nofbytes = int(entry2.get())
+        checksum = send_frame_to_host(0,patternType,nofbytes,userdata,timeDelay)
+        
+    #------------------------------------- CancelButton CallBack ----------------------------------------------------------------------------
+    def CancelButtonCallBack():
+        Manual.destroy()
+
+    #------------------------------------- Radio Callback ----------------------------------------------------------------------------
+    def sel():  ## Disable UserEntry when other radiobuttons are selected
+       entry0 = tk.Entry(Manual,bd=4,textvariable=UserVal,justify=RIGHT, width=6,state=DISABLED)
+       entry0.place(x=160, y=115)
+   
+    #------------------------------------- User Entry ----------------------------------------------------------------------------------------
+    def UserEntry():
+        print "You selected the option " + str(radiobutn.get())
+        entry0 = tk.Entry(Manual,bd=4,textvariable=UserVal,justify=RIGHT, width=6)
+        entry0.pack()
+        entry0.place(x=160, y=115)
+        print 'UserEntry ' + str(int(entry0.get()))
+
+    #------------------------------------- Radio Buttons -------------------------------------------------------------------------------------    
+    man_rb1 = tk.Radiobutton(Manual, text="0xAA", value=1, variable=radiobutn, command=sel)
+    man_rb1.pack()
+    man_rb1.place(x=10, y=25)
+    man_rb2 = tk.Radiobutton(Manual, text="0x55", value=2, variable=radiobutn, command=sel)
+    man_rb2.pack()
+    man_rb2.place(x=10, y=55)
+    man_rb3 = tk.Radiobutton(Manual, text="0x01, 0x02, 0x03,...0xFF", value=4, variable=radiobutn, command=sel)
+    man_rb3.pack()
+    man_rb3.place(x=10, y=85)
+    man_rb4 = tk.Radiobutton(Manual, text="User Input:          in Dec",value=8, variable=radiobutn, command=UserEntry)
+    man_rb4.pack()
+    man_rb4.place(x=10, y=115)
+
+    #------------------------------------- Entry ----------------------------------------------------------------------------------------
+    entry0 = tk.Entry(Manual,bd=4,textvariable=UserVal,justify=RIGHT, width=6,state=DISABLED)
+    entry0.place(x=160, y=115)    
+    
+    label_entry1 = tk.Label(Manual,text="Frame Send Time:  in mS").place(x=15, y=147)
+    entry1 = tk.Entry(Manual,bd=4,textvariable=TimeVal,justify=RIGHT, width=6)
+    entry1.place(x=160, y=147)
+    entry1.insert(0,"0")
+
+    label_entry2 = tk.Label(Manual,text="Number of Bytes to Send:").place(x=15, y=180)
+    entry2 = tk.Entry(Manual,bd=4,textvariable=ByteCnt,justify=RIGHT, width=6)
+    entry2.place(x=160, y=180)
+    entry2.insert(0,"64")
+    #------------------------------------- Buttons --------------------------------------------------------------------------------------
+    Manual_gettime = tk.Button(Manual, text = " Get Time", height=1,width=9,bd=4, command=lambda:SendFrameButtonCallBack(1))
+    Manual_gettime.pack()
+    Manual_gettime.place(x=230,y=25)
+        
+    Manual_Sndfram = tk.Button(Manual, text = " Send Frame ", height=1,width=9,bd=4, command=lambda:SendFrameButtonCallBack(0))
+    Manual_Sndfram.pack()
+    Manual_Sndfram.place(x=230,y=69)
+
+    Manual_delaySndfram = tk.Button(Manual, text = " Send Frame At Time", height=1,width=19,bd=4, command=lambda:SendFrameButtonCallBack(1))
+    Manual_delaySndfram.pack()
+    Manual_delaySndfram.place(x=230,y=109)
+
+    Manual_waitfrEvnt = tk.Button(Manual, text = " Wait For An Event", height=1,width=19,bd=4, command=lambda:SendFrameButtonCallBack(1))
+    Manual_waitfrEvnt.pack()
+    Manual_waitfrEvnt.place(x=230,y=149)    
+
+    Manual_Cancel = tk.Button(Manual, text = " Cancel ", height=4,width=6,bd=4, command=CancelButtonCallBack)
+    Manual_Cancel.pack()
+    Manual_Cancel.place(x=321,y=25)
+
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+#Manual.mainloop()

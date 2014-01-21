@@ -9,6 +9,7 @@
 
 
 #define NODE_ID 1
+
 typedef struct {
   uint16_t type;
 
@@ -85,7 +86,7 @@ typedef struct {
 #define STATUS_RESPONSE_BUFFER_SIZE_BYTES (32 + D_NMT_ErrorEntries_U32*20)
 
 static uint8_t status_response_buf[2][STATUS_RESPONSE_BUFFER_SIZE_BYTES] = {
-
+    {
     0x01, 0x11, 0x1E, 0x00, 0x00, 0x04, //dst_mac
     MAC_0, MAC_1, MAC_2, MAC_3, MAC_4, MAC_5, //src_mac
     0x88, 0xAB, //ethertype
@@ -99,6 +100,22 @@ static uint8_t status_response_buf[2][STATUS_RESPONSE_BUFFER_SIZE_BYTES] = {
     0x00,0x00,0x00,//Reserved
     0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,//StaticErrorBitField
     //Then there are D_NMT_ErrorEntries_U32 20 byte error entries
+    },
+    {
+    0x01, 0x11, 0x1E, 0x00, 0x00, 0x04, //dst_mac
+    MAC_0, MAC_1, MAC_2, MAC_3, MAC_4, MAC_5, //src_mac
+    0x88, 0xAB, //ethertype
+    Asynchronous_Send,
+    C_ADR_BROADCAST,
+    NODE_ID,
+    STATUS_RESPONSE,
+    0x00,//EN + EC
+    0x00,//PR + RS
+    0x00,//NMTStatus
+    0x00,0x00,0x00,//Reserved
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,//StaticErrorBitField
+    //Then there are D_NMT_ErrorEntries_U32 20 byte error entries
+    }
 };
 
 static uintptr_t get_status_response_pointer(eh_status &s){
@@ -123,7 +140,7 @@ static void switch_status_response_buffer(eh_status &s){
 }
 
 static unsigned get_status_response_size(eh_status &s){
-  return s.current_srb_entries*20 + 31;
+  return s.current_srb_entries*20 + 32;
 }
 
 static void insert_in_status_response_frame(ErrorEntry_DOM latest_error_entry,
@@ -137,7 +154,7 @@ void pl_error_handling(chanend c_mii, chanend c_dll, chanend c_nmt){
   error_signalling_data_present = 0;
   eh_status s;
   s.current_srb_index = 0;
-  s.current_srb_entries = 0;
+  s.current_srb_entries = 2;
 
   while(1){
     select {

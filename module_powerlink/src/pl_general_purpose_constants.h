@@ -13,9 +13,9 @@
 #define C_DLL_ASND_PRIO_NMTRQST	  7		//increased ASnd request priority to be used by NMT Requests
 #define C_DLL_ASND_PRIO_STD 	    0		//standard ASnd request priority
 #define C_DLL_ETHERTYPE_EPL 	    0x88AB	//
-#define C_DLL_ISOCHR_MAX_PAYL 	  1490 	//maximum size of PReq and PRes payload data, requires C_DLL_MAX_ASYNC_MTU
+#define C_DLL_ISOCHR_MAX_PAYL 	  36 	//maximum size of PReq and PRes payload data, requires C_DLL_MAX_ASYNC_MTU
 #define C_DLL_MAX_ASYNC_MTU 	    1500 	//maximum asynchronous payload in bytes including all headers (exclusive the Ethernet header)
-#define C_DLL_MAX_PAYL_OFFSET 	  1499 	//maximum offset of Ethernet frame payload, requires C_DLL_MAX_ASYNC_MTU
+#define C_DLL_MAX_PAYL_OFFSET 	  36 	//maximum offset of Ethernet frame payload, requires C_DLL_MAX_ASYNC_MTU
 #define C_DLL_MAX_RS 			        7		//
 #define C_DLL_MIN_ASYNC_MTU 	    300		//minimum asynchronous payload in bytes including all headers (exclusive the Ethernet header)
 #define C_DLL_MIN_PAYL_OFFSET 	  45		//minimum offset of Ethernet frame payload

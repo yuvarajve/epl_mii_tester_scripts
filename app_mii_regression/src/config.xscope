@@ -1,0 +1,3 @@
+<xSCOPEconfig enabled="true" ioMode="basic">
+  <Probe name="Mii_Dut_Ack" type="CONTINUOUS" datatype="UINT" units="ack" enabled="true"/>
+</xSCOPEconfig>

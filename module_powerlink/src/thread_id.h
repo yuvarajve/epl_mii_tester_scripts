@@ -11,10 +11,14 @@
  * |    31     |    30 - 19    | 18 - 0  |
  *
  */
-
+#include <print.h>
 #ifdef __XC__
 static unsigned make_tx_req_p(uintptr_t pointer, unsigned size_in_bytes, unsigned thread_id) {
-	return pointer | (size_in_bytes<<19) | (thread_id << 31);
+  unsigned t = pointer | (size_in_bytes<<19) | (thread_id << 31);
+if(t == 0x82000040){
+  while(1);
+}
+	return t;
 }
 /*
 static unsigned make_tx_req(uint8_t buffer[], unsigned size_in_bytes, unsigned thread_id) {

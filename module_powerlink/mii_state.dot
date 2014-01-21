@@ -1,0 +1,56 @@
+digraph g {
+
+entry [label="Entry"];
+entry -> wait_for_idle
+waiting [label="Waiting"];
+timer_event_taken [label="Timer event taken"];
+do_tx [label="Do TX"];
+wait_for_idle [label="Wait for idle\nSet timer to event at end of IFG\nIf tx_req pending then enable timer event else disable"];
+chan [label="Channel input"];
+ack [label="Ack\nClear waiting bit"];
+tx_req [label="tx_req\nSave it\nEnable timer event"];
+rx_d [label="RX 0xD"];
+rx_waiting [label="RX waiting"];
+rx_word [label="RX word"];
+rx_dv_low [label="RX DV low"];
+check_chan [label="Check chan"];
+
+ack_returned [label="All acks returned?"];
+broadcast_rx [label="Broadcast RX"];
+
+
+rx_tx_req [label="tx_req\nSave it"];
+rx_ack [label="Ack\nClear waiting bit"];
+
+waiting -> timer_event_taken;
+waiting -> chan;
+waiting -> rx_d;
+
+timer_event_taken -> do_tx;
+
+chan -> ack;
+ack -> waiting;
+
+chan -> tx_req;
+tx_req -> waiting;
+
+do_tx -> wait_for_idle;
+wait_for_idle -> waiting;
+
+rx_d -> rx_waiting;
+rx_waiting-> rx_word;
+rx_word -> rx_waiting;
+rx_waiting -> rx_dv_low; 
+rx_dv_low -> check_chan;
+
+check_chan -> rx_ack;
+check_chan -> rx_tx_req;
+rx_tx_req -> check_chan;
+
+rx_ack -> ack_returned;
+ack_returned -> broadcast_rx [label="Y"];
+ack_returned -> wait_for_idle [label="N"];
+check_chan -> ack_returned;
+broadcast_rx -> wait_for_idle;
+
+};

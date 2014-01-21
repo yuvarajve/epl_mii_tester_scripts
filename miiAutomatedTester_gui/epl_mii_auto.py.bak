@@ -1,0 +1,171 @@
+## --------- XMOS Ethernet PowerLink Automated Test Mode ---------- ##
+import Tkinter as tk
+from Tkinter import *
+from Tkinter import Label
+import tkMessageBox
+from Tkinter import Checkbutton
+import os
+from mii_frame_gen import *
+import time
+import pyglet
+
+#------------------------------------ To Show Processing Bar -----------------------------------------------------------------------------------
+def show_processbar():
+##    # pick an animated gif file you have in the working directory
+##    ag_file = "progress_bar.gif"
+##    animation = pyglet.resource.animation(ag_file)
+##    sprite = pyglet.sprite.Sprite(animation)
+##    # create a window and set it to the image size
+##    win = pyglet.window.Window(width=sprite.width, height=sprite.height)
+##    # set window background color = r, g, b, alpha
+##    # each value goes from 0.0 to 1.0
+##    green = 0, 1, 0, 1
+##    pyglet.gl.glClearColor(*green)
+##
+##    @win.event
+##    def on_draw():
+##        win.clear()
+##        sprite.draw()
+
+    ##########################################################
+    windows = pyglet.window.Window()
+    image = pyglet.resource.image('progress_bar.gif')
+
+    @windows.event()
+    def on_draw():
+        windows.clear()
+        image.blit(0,0)
+        
+    pyglet.app.run()
+#------------------------------------- Label Frame --------------------------------------------------------------------------------------
+def AutomatedTest():
+    Auto = tk.Tk()
+    Auto.title('Automated Testing Mode')
+    Auto.geometry("300x215")
+    Auto_labelframe = tk.LabelFrame(Auto, text="Choose the Test Pattern(s)")
+    Auto_labelframe.pack(fill="both", expand="yes")    
+
+    #------------------------------------- StartButton CallBack -----------------------------------------------------------------------------
+    def StartButtonCallBack():
+        
+        if((chkbutn1.get() or chkbutn2.get() or chkbutn3.get()) == 0):
+            tkMessageBox.showerror("Automated Testing Mode", "ERROR: No Pattern Chosen to Start")
+            Auto.destroy()
+
+        if(int(entry.get()) > 5000):
+            tkMessageBox.showerror("Automated Testing Mode", "ERROR: Frame Send Time - Out of Range \n Range: 0 to 5000 mSec")
+            Auto.destroy()
+
+        checksum = 0
+        byte_cnt = 64
+        if(chkbutn1.get() == 1):
+            while(byte_cnt <= 1522):
+                checksum = send_frame_to_host(1,1,byte_cnt,0,0)
+                byte_cnt += 1
+
+        byte_cnt = 64
+        if(chkbutn2.get() == 1):
+            while(byte_cnt <= 1522):
+                send_frame_to_host(1,2,byte_cnt,0,0)
+                byte_cnt += 1
+
+        byte_cnt = 64
+        if(chkbutn3.get() == 1):
+            while(byte_cnt <= 1522):
+                send_frame_to_host(1,4,byte_cnt,0,0)
+                byte_cnt += 1
+                
+    #------------------------------------- CancelButton CallBack ----------------------------------------------------------------------------
+    def CancelButtonCallBack():
+        Auto.destroy()
+
+    #------------------------------------- CheckButtons Callback ----------------------------------------------------------------------------        
+    def Checkbox1CallBack():
+        chkbutn1.set(not chkbutn1.get())
+        checkbox4.deselect()    #Deselect SelectAll Checkbox when any 1 pattern is selected or deselected
+        chkbutn4.set(0)         #Set chkbutn4 value as 0
+        checkbox5.deselect()
+
+    def Checkbox2CallBack():
+        chkbutn2.set(not chkbutn2.get())
+        checkbox4.deselect()    #Deselect SelectAll Checkbox when any 1 pattern is selected or deselected
+        chkbutn4.set(0)         #Set chkbutn4 value as 0
+        checkbox5.deselect()
+        
+    def Checkbox3CallBack():
+        chkbutn3.set(not chkbutn3.get())
+        checkbox4.deselect()    #Deselect SelectAll Checkbox when any 1 pattern is selected or deselected
+        chkbutn4.set(0)         #Set chkbutn4 value as 0
+        checkbox5.deselect()
+        
+    def SelectAllCallBack():
+        chkbutn4.set(not chkbutn4.get())
+        checkbox5.deselect()
+        if (chkbutn4.get() != 0):
+            checkbox1.select()
+            chkbutn1.set(1)
+            checkbox2.select()
+            chkbutn2.set(1)
+            checkbox3.select()
+            chkbutn3.set(1)
+        else:
+            checkbox1.deselect()
+            chkbutn1.set(0)
+            checkbox2.deselect()
+            chkbutn2.set(0)
+            checkbox3.deselect()
+            chkbutn3.set(0)
+
+    def ClearAllCallBack():
+        chkbutn4.set(0)
+        checkbox1.deselect()
+        chkbutn1.set(0)
+        checkbox2.deselect()
+        chkbutn2.set(0)
+        checkbox3.deselect()
+        chkbutn3.set(0)
+        checkbox4.deselect()
+
+    #------------------------------------- Check Buttons -------------------------------------------------------------------------------------   
+    chkbutn1 = IntVar()
+    chkbutn2 = IntVar()
+    chkbutn3 = IntVar()
+    chkbutn4 = IntVar()
+    chkbutn5 = IntVar()
+    TimeVal = IntVar()
+
+    checkbox1 = tk.Checkbutton(Auto,text="0xAA", variable=chkbutn1, onvalue = 1, offvalue = 0,command=Checkbox1CallBack)
+    checkbox1.pack()
+    checkbox1.place(x=10,y=30)
+    checkbox2 = tk.Checkbutton(Auto,text="0x55", variable=chkbutn2,command=Checkbox2CallBack)
+    checkbox2.pack()
+    checkbox2.place(x=10,y=65)
+    checkbox3 = tk.Checkbutton(Auto,text="0x01, 0x02, 0x03,...0xFF", variable=chkbutn3, command=Checkbox3CallBack)
+    checkbox3.pack()
+    checkbox3.place(x=10,y=100)
+    checkbox4 = tk.Checkbutton(Auto,text="Select All",variable=chkbutn4, command=SelectAllCallBack)
+    checkbox4.pack()
+    checkbox4.place(x=10,y=135) 
+    checkbox5 = tk.Checkbutton(Auto,text="Clear All",variable=chkbutn5, command=ClearAllCallBack)
+    checkbox5.pack()
+    checkbox5.place(x=95,y=135)
+
+    #------------------------------------- Entry ----------------------------------------------------------------------------------------
+    label_entry = tk.Label(Auto,text="Frame Send Time:  in mS").place(x=10, y=175)
+    entry = tk.Entry(Auto,bd=4,textvariable=TimeVal,justify=RIGHT, width=6)
+    entry.pack()
+    entry.place(x=160, y=175)
+    entry.insert(0,"0") #to show the default value
+
+    #------------------------------------- Buttons --------------------------------------------------------------------------------------
+    Auto_Start = tk.Button(Auto, text = " Start ", height=2,width=7,bd=4, command=StartButtonCallBack)
+    Auto_Start.pack()
+    Auto_Start.place(x=215,y=32)
+
+    Auto_Cancel = tk.Button(Auto, text = " Cancel ", height=2,width=7,bd=4, command=CancelButtonCallBack)
+    Auto_Cancel.pack()
+    Auto_Cancel.place(x=215,y=110)
+
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+#Auto.mainloop()

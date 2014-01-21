@@ -1,0 +1,28 @@
+
+
+
+MII Rx Process
+1. MII passes a pointer to the frame to the DLL and NMT
+
+DLL Rx Process
+1. Accept the pointer from the MII
+2. 
+
+MNT Rx Process
+1. Accept the pointer from the MII
+2. if 
+
+
+
+
+
+SoC Process
+
+
+
+
+PReq Process
+1. Check if PReq is for my ID - reject if not
+2. Send a request to DLL for the latest PRes
+3. Fill in the flags MS, EA and RD
+4. 

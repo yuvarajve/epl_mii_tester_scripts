@@ -1,0 +1,56 @@
+Powerlink Demo
+--------------
+
+Setup
+-----
+
+In order to run the demo you will need::
+   - Slicekit L16 (the powerlink node, or Controlled Node (CN) )
+   - Two ethernet slices XA-SK-E100
+   - One GPIO slice - XA-SK-GPIO
+   - One ethernet cable
+   - Windows laptop for running the Powerlink master (Managing Node = "MN")
+   - Slicekit Power plug 
+   
+First install the open source powerlink demo for windows on your laptop(Laptop 1). It can be found here:
+
+http://sourceforge.net/projects/openpowerlink/
+
+Laptop Setup Notes
+------------------
+
+   * The Windows Laptop must have ethernet services turned off(DHCP etc). If they are not then the Master will probably come out of operational.
+   * Apply to XMOS IT services for assistance in doing this
+
+SliceKIT setup notes
+--------------------
+
+Ensure you have a sliceKIT labelled "Powerlink Demo 0v1".
+
+   1. Plug ethernet slices into Circle and Square
+   2. Plug GPIO Slice in Star
+   3. Connect ethernet cable from Circle ethernet slice into Laptop 
+   4. Connect power to slicekit
+   
+Run the demo:
+
+This demo is running a  CANopen-over-Powerlink 401 profle. Our GPIO slice is acting as the IO Module. The sliceKIT is CN1 ("Controlled Node 1").
+
+What you should See
+-------------------
+
+   #. On the laptop you ee the words 'CN1' with a green light next to it which means that the XMOS powerlink node has reached "powerlink operational state".
+   #. At the bottom of the screen there should be a green light which says "Operational" next to it.
+   #. Digital Input and Digital Output lights should be shown, the digital outputs should be slowly changing, these are under control of the master node running on the laptop.
+   
+What you should do
+------------------
+
+   #. Digital inputs are controlled by the XMOS CN, one should be lit. 
+   #. You can demonstrate that this is a bona fide demo by using a button on the GPIO slice to move the inut light which is lit to the left or right. The other GPIO button will cause a move in the alternative direction.
+   
+   
+   
+      
+
+

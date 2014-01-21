@@ -1,0 +1,5 @@
+#ifndef EXTERNAL_DEFINES_H_
+#define EXTERNAL_DEFINES_H_
+
+
+#endif /* EXTERNAL_DEFINES_H_ */

@@ -1,0 +1,5 @@
+#ifndef INTERNAL_DEFINES_H_
+#define INTERNAL_DEFINES_H_
+
+
+#endif /* INTERNAL_DEFINES_H_ */

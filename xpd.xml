@@ -1,0 +1,76 @@
+<?xml version="1.0" ?>
+<xpd>
+    <components>
+        <component description = "App CANOpen Object Dictionary" type = "demoCode" scope = "Example" path = "app_can_open_od_enum" local = "false" id = "app_can_open_od_enum" name = "app_can_open_od_enum">
+            <board></board>
+            <componentDependency repo = "git://git/app_epl">module_can_open_od</componentDependency>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "App MII Regression" type = "demoCode" scope = "Example" path = "app_mii_regression" local = "false" id = "app_mii_regression" name = "app_mii_regression">
+            <board></board>
+            <componentDependency repo = "git://git/app_epl">module_powerlink</componentDependency>
+            <componentDependency repo = "git://git/app_epl">module_can_open</componentDependency>
+            <componentDependency repo = "git://git/app_epl">module_can_open_od</componentDependency>
+            <componentDependency repo = "git://github.com/xcore/sc_ethernet.git" version = "2.2.6">module_ethernet_smi</componentDependency>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "App MII Tester" type = "demoCode" scope = "Example" path = "app_mii_tester" local = "false" id = "app_mii_tester" name = "app_mii_tester">
+            <board></board>
+            <componentDependency repo = "git://github.com/xcore/sc_ethernet.git" version = "2.2.6">module_ethernet_smi</componentDependency>
+            <componentDependency repo = "git://github.com/xcore/sc_util" version = "1.0.3">module_logging</componentDependency>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "App Powerlink" type = "demoCode" scope = "Example" path = "app_powerlink" local = "false" id = "app_powerlink" name = "app_powerlink">
+            <board></board>
+            <componentDependency repo = "git://github.com/xcore/sc_ethernet.git" version = "2.2.6">module_ethernet_smi</componentDependency>
+            <componentDependency repo = "git://git/app_epl">module_can_open_od</componentDependency>
+            <componentDependency repo = "git://git/app_epl">module_can_open_od</componentDependency>
+            <componentDependency repo = "git://git/app_epl">module_powerlink</componentDependency>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "Module Can Open" type = "demoCode" scope = "Example" path = "module_can_open" local = "false" id = "module_can_open" name = "module_can_open">
+            <board></board>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "Module Can Open Object Dictionary" type = "demoCode" scope = "Example" path = "module_can_open_od" local = "false" id = "module_can_open_od" name = "module_can_open_od">
+            <board></board>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "Module Epl" type = "demoCode" scope = "Example" path = "module_epl" local = "false" id = "module_epl" name = "module_epl">
+            <board></board>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+        <component description = "Module Powerlink" type = "demoCode" scope = "Example" path = "module_powerlink" local = "false" id = "module_powerlink" name = "module_powerlink">
+            <board></board>
+            <componentDependency repo = "git://git/app_epl">module_can_open_od</componentDependency>
+            <keyword>CAN</keyword>
+            <keyword>Powerlink</keyword>
+        </component>
+    </components>
+    <dependency repo = "sc_util">
+        <githash>d0531d7c68ab67334582c324828e36d617baf8b3</githash>
+        <uri>git://github.com/xcore/sc_util</uri>
+        <version>1.0.3rc0</version>
+    </dependency>
+    <dependency repo = "sc_ethernet">
+        <githash>1ab3378f3f6da6ba44ffd89e7fc57bb0006c3ae2</githash>
+        <uri>https://github.com/xcore/sc_ethernet.git</uri>
+    </dependency>
+    <description>Powerlink</description>
+    <location>git://git/app_epl</location>
+    <name>app_epl</name>
+    <maintainer>andrewstanfordjason</maintainer>
+    <partnumber>XM-004433-DH</partnumber>
+    <release parenthash = "a550b655b32da14b6436ee19b0e430f8ae62adc9" version = "0.1.0beta0"></release>
+    <subpartnumber>XM-004434-SM</subpartnumber>
+    <vendor>XMOS</vendor>
+    <version_defines></version_defines>
+    <xpd_version>1.0</xpd_version>
+</xpd>

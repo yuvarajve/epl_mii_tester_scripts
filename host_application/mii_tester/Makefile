@@ -1,5 +1,11 @@
-INCLUDES = -I../module_pcapng/src -I ../common 
+INCLUDES = -I ../sc_xscope_support-master/host_library 
 
-all:
-	gcc -O2 ../common/shared.c mii_tester_script.c -o mii_tester_script $(INCLUDES)
+APP_NAME = mii_tester_script
+FLAGS = -O2
+
+INCLUDES +=
+
+ROOT = ../../..
+include $(ROOT)/sc_xscope_support/host_library/makefile.shared
+
 

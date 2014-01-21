@@ -4,8 +4,8 @@
 #include <xccompat.h>
 #include <stdint.h>
 #include <pl_defines.h>
-
 #include "device_description.h"
+
 
 typedef struct t_frame_SoA {
   unsigned char NMTStatus;
@@ -28,12 +28,7 @@ typedef struct t_frame_SoA {
 
 enum {INIT = 0, CLOSED = 1, OPEN = 2};
 
-#include "async_sdo_seq_layer.h"
-#include "async_sdo_cmd_layer.h"
 typedef struct {
-
-
-
 
 /*  maybe pack these
  * |MC|PS|MS|EN|EC|EA|ER|RD|
@@ -63,11 +58,10 @@ typedef struct {
   unsigned RS;
   unsigned PR;
 
-  unsigned PR_queues[8];         //the count of pointer in the PR queue
-  uintptr_t PR_queues_p[8][8];   //the pointers
-  unsigned PR_queues_size[8][8]; //the size of each pointer
-
-  uintptr_t mii_pointer_in_use;
+  unsigned PR_queue_fill_level[8];         //the count of pointer in the PR queue
+  uintptr_t PR_queues_p[8][8];              //the pointers
+  unsigned PR_queues_size[8][8];           //the size of each pointer
+  int SDO_in_PR_queue;
 
 
   //This is stuff for the async slot
@@ -78,25 +72,9 @@ typedef struct {
   unsigned SoA_response_size;
   uintptr_t SoA_response_p;
 
-  unsigned seq_no_tx_by_me;
-  unsigned seq_no_rx_by_me;
-
-
-  unsigned rx_waiting;
-
-  //NMT stuff
-  t_nmt_state NMTStatus;
-  uint8_t node_id;
-
-
-  //want to send a NMT_REQUEST_INVITE
-  unsigned nmt_req_invite;
-  //want to send an UNSPECIFIED_INVITE
-  unsigned unspec_invite;
-
   unsigned asnd_invite_response;
 
-  unsigned seq_con;
+
 } ASync_state;
 
 /*
@@ -109,7 +87,7 @@ void report_error(chanend c_eh, unsigned error);
 void request_status_response_from_eh(chanend c_eh, REFERENCE_PARAM(ASync_state, async_state));
 
 int is_nmt_command(uintptr_t rx_buffer_address, REFERENCE_PARAM(uintptr_t,  nmt_cmd));
-int is_valid_nmt_command(uintptr_t nmt_cmd_p, t_nmt_command valid_commands[], unsigned valid_cmd_count);
+int is_valid_nmt_command(uintptr_t nmt_cmd_p, nmt_command_id_t valid_commands[], unsigned valid_cmd_count);
 int reject_mac(uintptr_t rx_buffer_address);
 int reject_pl_dst(uintptr_t rx_buffer_address, unsigned node_id);
 
@@ -117,7 +95,7 @@ void handle_nmt_command_p(uintptr_t nmt_cmd, REFERENCE_PARAM(ASync_state, async_
 
 
 void process_PReq_error_flags( REFERENCE_PARAM(ASync_state, async_state), uintptr_t rx_buffer_address);
-void process_ASnd_or_nonpowerlink_frame(uintptr_t rx_buffer_address, chanend c_eh, REFERENCE_PARAM(ASync_state, async_state));
+void process_ASnd_or_nonpowerlink_frame(uintptr_t rx_buffer_address, chanend c_eh, REFERENCE_PARAM(ASync_state, async_state), chanend c_can_open);
 void process_SoA(uintptr_t rx_buffer_address, REFERENCE_PARAM(ASync_state, async_state), chanend c_eh);
 
 #endif /* PL_NMT_H_ */
